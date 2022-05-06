@@ -1,0 +1,15 @@
+all:
+  hosts:
+    3.15.160.47:
+    13.59.215.172:
+    52.15.137.11:
+  Children:
+    webserver:
+      hosts:
+        3.15.160.47:
+    appserver:
+      hosts:
+         13.59.215.172:
+    dbserver:
+      hosts:
+        52.15.137.11:
