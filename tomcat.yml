@@ -2,51 +2,53 @@
 - name: Install tomcat
   hosts: webserver
   become: true
+  vars:
+    java_version: "java-openjdk11"
+    tomcat_user: "tomcat"
+    tomcat_group: "tomcat"
+    tomcat_home: "/usr/share/tomcat"
+    tomcat_zipfile: "apache-tomcat-9.0.62"
+    tomcat_url: "https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.62/bin/{{tomcat_zipfile}}.tar.gz"
+    tomcat_servicepath: "/etc/systemd/system/{{tomcat_servicefile}}"
+    tomcat_servicefile: "tomcat.service"
+    tomcat_srcpath: "/home/ec2-user"
+    tomcat_destpath: "/usr/share"
   tasks:
     - name: enable open Jdk version 11
-      ansible.builtin.command:  amazon-linux-extras enable java-openjdk11
+      ansible.builtin.command: amazon-linux-extras enable "{{java_version}}"
     - name: Install open JDK 11
       ansible.builtin.yum:
         name: java-11-openjdk
         state: present
     - name: Add tomcat  group
       ansible.builtin.group:
-        name: tomcat
+        name: "{{tomcat_group}}"
         state: present
         system: true
     - name: Add Tomcat user
       ansible.builtin.user:
-        name: tomcat
+        name: "{{tomcat_user}}"
         group:
         create_home: true
-        home: /usr/share/tomcat
+        home: "{{tomcat_home}}"
         system: true
         shell: /bin/bash
     - name: Download latest version of tomcat
-      ansible.builtin.command: wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.59/bin/apache-tomcat-9.0.59.tar.gz
-        #- name: create sym link
-      #ansible.builtin.command: ln -s /usr/share/apache-tomcat-9.0.59/ /usr/share/tomcat
+      ansible.builtin.command: wget {{tomcat_url}}
     - name: extract apache tomcat
       ansible.builtin.unarchive:
-        src: /home/ec2-user/apache-tomcat-9.0.59.tar.gz
-        dest: /usr/share/
-        owner: tomcat
-        group: tomcat
+        src: "{{tomcat_srcpath}}/{{tomcat_zipfile}}.tar.gz"
+        dest: "{{tomcat_destpath}}"
+        owner: "{{tomcat_user}}"
+        group: "{{tomcat_group}}"
         remote_src: true
-          # - name: create sym link
-          # ansible.builtin.file:
-          #src: /usr/share/apache-tomcat-9.0.59.tar
-          #dest: /usr/share/tomcat
-          # owner: tomcat
-          # group: tomcat
-        #state: link
     - name: create tomcat service file
       ansible.builtin.copy:
-        src: tomcat.service
-        dest: /etc/systemd/system/tomcat.service
+        src: "{{tomcat_servicefile}}"
+        dest: "{{tomcat_servicepath}}"
     - name : start tomcat service
       ansible.builtin.service:
-        name: tomcat
+        name: "{{tomcat_user}}"
         enabled: true
         daemon_reload: true
         state: restarted
